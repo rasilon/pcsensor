@@ -1,9 +1,11 @@
 all:	pcsensor
 
-CFLAGS = -O2 -Wall
+CFLAGS = -O2 -Wall -I/usr/include/postgresql
+LDFLAGS = -lusb -lpq
+
 
 pcsensor:	pcsensor.c
-	${CC} ${CFLAGS} -DUNIT_TEST -o $@ $^ -lusb
+	${CC} ${CFLAGS} -DUNIT_TEST -o $@ $^ ${LDFLAGS}
 
 clean:		
 	rm -f pcsensor *.o
