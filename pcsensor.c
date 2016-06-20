@@ -36,6 +36,7 @@
 #include <string.h>
 #include <errno.h>
 #include <signal.h>
+#include <ctype.h>
 
 
 #define VERSION "1.0.1"
@@ -64,6 +65,7 @@ static int seconds=5;
 static int formato=0;
 static int mrtg=0;
 static int calibration=0;
+static int isodate=0;
 
 
 void bad(const char *why) {
@@ -319,11 +321,17 @@ int main( int argc, char **argv) {
      struct tm *local;
      time_t t;
 
-     while ((c = getopt (argc, argv, "mfcvhl::a:")) != -1)
+     while ((c = getopt (argc, argv, "imfcvhsl::a:")) != -1)
      switch (c)
        {
+       case 'i':
+         isodate = 1;
+         break;
        case 'v':
          debug = 1;
+         break;
+       case 's':
+         formato=3; //CSV format, in Celsius
          break;
        case 'c':
          formato=1; //Celsius
@@ -403,6 +411,9 @@ int main( int argc, char **argv) {
 
 
 
+     if(formato == 3){
+        printf("reading_time,internal,external\n");
+     }
      do {
            control_transfer(lvr_winusb, uTemperatura );
            interrupt_read_temperatura(lvr_winusb, &tempInC, &tempOutC);
@@ -425,7 +436,13 @@ int main( int argc, char **argv) {
 
               printf("pcsensor\n");
            } else {
-              printf("%04d/%02d/%02d %02d:%02d:%02d\n",
+              char* date_fmt = NULL;
+              if(isodate == 1){
+                date_fmt = "%04d-%02d-%02d %02d:%02d:%02d";
+              }else{
+                date_fmt = "%04d/%02d/%02d %02d:%02d:%02d";
+              }
+              printf(date_fmt,
                           local->tm_year +1900,
                           local->tm_mon + 1,
                           local->tm_mday,
@@ -433,18 +450,25 @@ int main( int argc, char **argv) {
                           local->tm_min,
                           local->tm_sec);
 
-              if (formato==2) {
-                  printf("Temperature (internal) %.2fF\n", (9.0 / 5.0 * tempInC + 32.0));
-                  printf("Temperature (external) %.2fF\n", (9.0 / 5.0 * tempOutC + 32.0));
-              } else if (formato==1) {
-                  printf("Temperature (internal) %.2fC\n", tempInC);
-                  printf("Temperature (external) %.2fC\n", tempOutC);
-              } else {
+              switch(formato){
+                case 2:
+                  printf("\nTemperature (internal) %.2fF\n", (9.0 / 5.0 * tempInC + 32.0));
+                  printf("\nTemperature (external) %.2fF\n", (9.0 / 5.0 * tempOutC + 32.0));
+                  break;
+                case 1:
+                  printf("\nTemperature (internal) %.2fC\n", tempInC);
+                  printf("\nTemperature (external) %.2fC\n", tempOutC);
+                  break;
+                case 3:
+                  printf(",%.2f,%.2f\n", tempInC ,tempOutC);
+                  break;
+                default:
                   printf("Temperature (internal) %.2fF %.2fC\n", (9.0 / 5.0 * tempInC + 32.0), tempInC);
                   printf("Temperature (external) %.2fF %.2fC\n", (9.0 / 5.0 * tempOutC + 32.0), tempOutC);
               }
            }
 
+           fflush(NULL);
            if (!bsalir)
               sleep(seconds);
      } while (!bsalir);
