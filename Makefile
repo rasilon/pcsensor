@@ -1,6 +1,6 @@
 all:	pcsensor
 
-CFLAGS = -O2 -Wall -I/usr/include/postgresql
+CFLAGS = -O2 -Wall -I/usr/include/postgresql -DENABLE_PG=1
 LDFLAGS = -lusb -lpq
 
 
