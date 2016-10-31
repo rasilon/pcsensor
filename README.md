@@ -4,9 +4,8 @@ pcsensor
 PCSensor / TEMPer2 driver for linux
 
 This is based on PCSensor v. 1.0.1 by Juan Carlos Perez
+This can now log to CSV and Postgres.
 
-All I've done is tweak the tool to output both the temperature from the internal
-as well as the external sensor.
 
 /*
  * pcsensor.c by Juan Carlos Perez (c) 2011 (cray@isp-sl.com)
